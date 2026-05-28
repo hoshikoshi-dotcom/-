@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="電子野帳">
+<meta name="theme-color" content="#0d1f1c">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>電子野帳 - 水準測量</title>
+<style>
+:root{--bg:#1a1a1a;--bg2:#232323;--bg3:#2c2c2c;--header:#1f4d3a;--accent:#2ea872;--accent2:#1f8e5b;--danger:#b03a3a;--text:#e8e8e8;--text2:#b0b0b0;--border:#3a3a3a;--cell-border:#2f2f2f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+body{min-height:100vh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.titlebar{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg)}
+.titlebar h1{font-size:16px;margin:0;font-weight:500;flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.icon-btn{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:none;color:var(--text);font-size:17px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.project-bar{display:flex;align-items:center;gap:5px;padding:6px 8px;background:var(--bg);border-top:1px solid var(--border);flex-wrap:wrap}
+.project-select-wrap{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+.project-select-wrap label{font-size:12px;color:var(--text2)}
+#projectSelect{flex:1;min-width:0;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:14px}
+.proj-btn{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:6px 9px;font-size:14px;cursor:pointer;flex-shrink:0}
+.actionbar{display:flex;align-items:center;gap:6px;padding:4px 8px 8px;background:var(--bg);border-bottom:1px solid var(--border)}
+.actionbar .left{flex:1;display:flex;align-items:center;gap:6px;min-width:0}
+.project-input{background:transparent;border:none;color:var(--text);font-size:15px;padding:4px 6px;outline:none;flex:1;border-bottom:1px dashed var(--border)}
+.project-input::placeholder{color:var(--text2)}
+.pill-btn{background:var(--accent);color:#fff;border:none;border-radius:18px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.pill-btn.outline{background:transparent;color:var(--accent);border:2px solid var(--accent);padding:5px 12px}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:520px}
+thead th{background:var(--header);color:#fff;font-size:13px;font-weight:600;padding:10px 1px;text-align:center;position:sticky;top:0;z-index:1;border-right:1px solid rgba(255,255,255,0.18)}
+thead th:last-child{border-right:none}
+tbody td{border-bottom:1px solid var(--border);border-right:1px solid var(--cell-border);padding:0;text-align:center;vertical-align:middle;font-size:14px}
+tbody td:last-child{border-right:none}
+tbody tr{min-height:54px}
+.cell-wrap{display:flex;align-items:center;justify-content:center;padding:2px;gap:2px;min-height:50px}
+.cell-input{width:100%;background:transparent;border:none;color:var(--text);text-align:center;font-size:14px;font-weight:500;outline:none;padding:0 1px;flex:1;min-width:30px;font-variant-numeric:tabular-nums;font-family:inherit}
+.cell-input:focus{background:rgba(46,168,114,0.2)}
+.cell-input::placeholder{color:#555}
+input.cell-input{min-height:42px}
+textarea.cell-input{resize:none;overflow:hidden;line-height:1.25;min-height:42px;white-space:normal;word-break:break-all;overflow-wrap:anywhere;text-align:center}
+.cell-readonly{display:block;color:var(--text);font-variant-numeric:tabular-nums;padding:0 1px;font-size:14px;font-weight:500;letter-spacing:-0.2px}
+.cell-readonly.empty{color:#555;font-weight:400}
+.row-actions{display:flex;flex-direction:column;gap:1px;padding:1px;align-items:center;justify-content:center}
+.mini-btn{width:24px;height:20px;border-radius:5px;border:none;color:#fff;font-weight:700;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mini-btn.add{background:var(--accent2)}
+.mini-btn.del{background:var(--danger)}
+.mic-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:50%;width:18px;height:18px;font-size:9px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
+.mic-btn.recording{background:var(--danger);color:#fff;border-color:var(--danger);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(176,58,58,.7)}50%{box-shadow:0 0 0 8px rgba(176,58,58,0)}}
+.add-row-btn{display:block;width:100%;padding:14px;background:var(--bg2);color:var(--text2);border:1px dashed var(--border);cursor:pointer;font-size:14px}
+.summary{padding:10px 14px;background:var(--bg2);border-top:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.summary span b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
+.modal-backdrop.show{display:flex}
+.modal{background:var(--bg2);border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center}
+.modal h2{margin:0 0 8px;font-size:16px;font-weight:600}
+.modal .target{color:var(--accent);font-weight:600;margin-bottom:16px}
+.mic-large{width:88px;height:88px;border-radius:50%;background:var(--accent);color:#fff;font-size:38px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin:8px 0 16px}
+.mic-large.recording{background:var(--danger);animation:pulse 1.2s infinite}
+.voice-result{font-size:24px;min-height:36px;margin:8px 0;color:var(--text);word-break:break-all}
+.voice-hint{color:var(--text2);font-size:11px;margin-bottom:16px;line-height:1.4}
+.modal-actions{display:flex;gap:8px;justify-content:center}
+.modal-actions button{flex:1;padding:10px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer}
+.btn-cancel{background:var(--bg3);color:var(--text)}
+.btn-confirm{background:var(--accent);color:#fff}
+.menu-pop{position:absolute;right:12px;top:56px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:none;z-index:30;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.menu-pop.show{display:block}
+.menu-pop button{width:100%;padding:12px 14px;background:transparent;border:none;color:var(--text);text-align:left;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border)}
+.menu-pop button:last-child{border-bottom:none}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:10px 18px;border-radius:22px;font-size:13px;z-index:100;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.legend{padding:6px 12px;background:var(--bg2);color:var(--text2);font-size:10px;line-height:1.4;border-top:1px solid var(--border)}
+.legend code{background:var(--bg3);padding:1px 4px;border-radius:3px;color:var(--text)}
+col.c-name{width:88px}
+col.c-bs{width:72px}
+col.c-ih{width:50px}
+col.c-fs{width:72px}
+col.c-gl{width:84px}
+col.c-act{width:26px}
+col.c-note{width:160px}
+@media (max-width:380px){
+ col.c-name{width:78px}
+ col.c-bs{width:64px}
+ col.c-ih{width:46px}
+ col.c-fs{width:64px}
+ col.c-gl{width:76px}
+ col.c-act{width:24px}
+ .cell-input{font-size:13px}
+ .cell-readonly{font-size:13px}
+ .mic-btn{width:16px;height:16px;font-size:8px}
+ .mini-btn{width:22px;height:18px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="titlebar"><button class="icon-btn" id="menuBtn">⋯</button><h1 id="appTitle">level-survey</h1><button class="icon-btn" id="helpBtn">?</button></div>
+<div class="project-bar"><div class="project-select-wrap"><label>現場:</label><select id="projectSelect"></select></div><button class="proj-btn" id="renameProjectBtn" title="現場名を変更">✏</button><button class="proj-btn" id="newProjectBtn" title="新規">＋</button><button class="proj-btn" id="dupProjectBtn" title="複製">📋</button><button class="proj-btn" id="delProjectBtn" title="削除">🗑</button></div>
+<div class="actionbar"><div class="left"><input type="text" class="project-input" id="projectName" placeholder="現場名 / 路線名"></div><button class="pill-btn outline" id="exportBtn">出力</button></div>
+<div class="table-wrap"><table>
+<colgroup><col class="c-name"><col class="c-bs"><col class="c-ih"><col class="c-fs"><col class="c-gl"><col class="c-act"><col class="c-note"></colgroup>
+<thead><tr><th>測点</th><th>BS</th><th>IH</th><th>FS</th><th>GL</th><th>±</th><th>備考</th></tr></thead>
+<tbody id="rowsBody"></tbody>
+</table><button class="add-row-btn" id="addRowBtn">＋ 測点を追加</button></div>
+<div class="summary"><span>合計BS: <b id="sumBS">0.000</b></span><span>合計FS: <b id="sumFS">0.000</b></span><span>差(BS-FS): <b id="diff">0.000</b></span><span>測点数: <b id="ptCount">0</b></span></div>
+<div class="legend">入力規則: <code>BS</code>のみ=出発点 / <code>FS</code>のみ=中間点 / <code>BS+FS</code>=もりかえ点(TP)<br>自動計算: <code>IH = GL + BS</code>、<code>GL = 直前IH - FS</code>(GLは手入力で上書き可)</div>
+<div class="menu-pop" id="menuPop"><button id="menuClear">現場データ全クリア</button><button id="menuSample">サンプル入力</button><button id="menuExport">Excel出力</button><button id="menuExportJson">JSONバックアップ</button><button id="menuImportJson">JSON読み込み</button><button id="menuPrint">印刷</button></div>
+<input type="file" id="importFile" accept="application/json,.json" style="display:none">
+<div class="modal-backdrop" id="voiceModal"><div class="modal"><h2>音声入力</h2><div class="target" id="voiceTarget">―</div><button class="mic-large" id="voiceMicBtn">🎤</button><div class="voice-result" id="voiceResult">―</div><div class="voice-hint" id="voiceHint">例:「いってんにいさんよん」「1点234」「1.234」</div><div class="modal-actions"><button class="btn-cancel" id="voiceCancel">キャンセル</button><button class="btn-confirm" id="voiceConfirm">確定</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="app.js?v=20260504i"></script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js?v=20260504i').then(function(reg){reg.addEventListener('updatefound',function(){var sw=reg.installing;if(!sw)return;sw.addEventListener('statechange',function(){if(sw.state==='installed'&&navigator.serviceWorker.controller){window.location.reload();}});});}).catch(function(){});});}
+</script>
+</body>
+</html>
