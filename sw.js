@@ -1,13 +1,13 @@
 /* 電子野帳 PWA - Service Worker v2
  * navigation/HTML/JS はネットワーク優先 (常に最新を取得)、その他はキャッシュ優先
  */
-const CACHE = 'level-survey-v2-' + '20260504';
+const CACHE = 'level-survey-v3-' + '20260529';
 const PRECACHE = [
   './manifest.json',
-  './icon.svg',
-  './apple-touch-icon.png',
-  './icon-192.png',
-  './icon-512.png',
+  './icon.svg?v=20260529',
+  './apple-touch-icon.png?v=20260529',
+  './icon-192.png?v=20260529',
+  './icon-512.png?v=20260529',
   'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
 ];
 

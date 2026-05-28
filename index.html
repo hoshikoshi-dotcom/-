@@ -8,9 +8,12 @@
 <meta name="apple-mobile-web-app-title" content="電子野帳">
 <meta name="theme-color" content="#0d1f1c">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20260529">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=20260529">
+<link rel="apple-touch-icon-precomposed" href="apple-touch-icon.png?v=20260529">
+<link rel="icon" href="icon.svg?v=20260529" type="image/svg+xml">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=20260529">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=20260529">
 <title>電子野帳 - 水準測量</title>
 <style>
 :root{--bg:#1a1a1a;--bg2:#232323;--bg3:#2c2c2c;--header:#1f4d3a;--accent:#2ea872;--accent2:#1f8e5b;--danger:#b03a3a;--text:#e8e8e8;--text2:#b0b0b0;--border:#3a3a3a;--cell-border:#2f2f2f}
@@ -116,7 +119,4 @@ col.c-note{width:160px}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="app.js?v=20260504i"></script>
 <script>
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js?v=20260504i').then(function(reg){reg.addEventListener('updatefound',function(){var sw=reg.installing;if(!sw)return;sw.addEventListener('statechange',function(){if(sw.state==='installed'&&navigator.serviceWorker.controller){window.location.reload();}});});}).catch(function(){});});}
-</script>
-</body>
-</html>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js?v=20260504i').then(function(reg){reg.addEven
