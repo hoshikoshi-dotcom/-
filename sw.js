@@ -1,7 +1,7 @@
 /* 電子野帳 PWA - Service Worker v2
  * navigation/HTML/JS はネットワーク優先 (常に最新を取得)、その他はキャッシュ優先
  */
-const CACHE = 'level-survey-v3-' + '20260529';
+const CACHE = 'level-survey-v4-' + '20260530b';
 const PRECACHE = [
   './manifest.json',
   './icon.svg?v=20260529',

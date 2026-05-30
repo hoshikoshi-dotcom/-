@@ -117,6 +117,9 @@ col.c-note{width:160px}
 <div class="modal-backdrop" id="voiceModal"><div class="modal"><h2>音声入力</h2><div class="target" id="voiceTarget">―</div><button class="mic-large" id="voiceMicBtn">🎤</button><div class="voice-result" id="voiceResult">―</div><div class="voice-hint" id="voiceHint">例:「いってんにいさんよん」「1点234」「1.234」</div><div class="modal-actions"><button class="btn-cancel" id="voiceCancel">キャンセル</button><button class="btn-confirm" id="voiceConfirm">確定</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="app.js?v=20260504i"></script>
+<script src="app.js?v=20260530b"></script>
 <script>
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js?v=20260504i').then(function(reg){reg.addEven
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js?v=20260504i').then(function(reg){reg.addEventListener('updatefound',function(){var sw=reg.installing;if(!sw)return;sw.addEventListener('statechange',function(){if(sw.state==='installed'&&navigator.serviceWorker.controller){window.location.reload();}});});}).catch(function(){});});}
+</script>
+</body>
+</html>

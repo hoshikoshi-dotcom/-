@@ -1,4 +1,4 @@
-/* 電子野帳 PWA v2.6 - 折返・土木音声強化 */
+/* 電子野帳 PWA v2.7 - 数字音声認識強化 (全角対応・候補選択・末桁救済) */
 (() => {
   'use strict';
   const SK = 'level_survey_projects_v2', LK = 'level_survey_v1';
@@ -27,10 +27,14 @@
 
   function parseNum(text) {
     if (!text) return null;
-    let s = String(text).trim().replace(/\s+/g, '').replace(/(です|だよ|ね)$/g, '');
+    let s = String(text).trim();
+    s = s.replace(/メートル|ﾒｰﾄﾙ/g, '.');
+    s = s.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+    s = s.replace(/[．]/g, '.').replace(/[＋]/g, '+').replace(/[－−–—]/g, '-');
+    s = s.replace(/\s+/g, '').replace(/(です|ですね|だよ|ね|。)$/g, '');
     if (/^[-+]?\d+(\.\d+)?$/.test(s)) return parseFloat(s);
-    s = s.replace(/メートル|ﾒｰﾄﾙ/g, '.').replace(/いって?ん/g, '1.').replace(/はって?ん/g, '8.')
-         .replace(/じゅって?ん|じって?ん/g, '10.').replace(/てん|テン/g, '.').replace(/[点・，、,]/g, '.').replace(/[mMｍ]/g, '');
+    s = s.replace(/いって?ん/g, '1.').replace(/はって?ん/g, '8.')
+         .replace(/(じゅう|じゅっ|じっ)て?ん/g, '10.').replace(/てん|テン/g, '.').replace(/[点・，、,]/g, '.').replace(/[mMｍ]/g, '');
     const ks = Object.keys(KAN).sort((a, b) => b.length - a.length);
     for (const k of ks) s = s.split(k).join(KAN[k]);
     s = s.replace(/[^0-9.\-+]/g, '');
@@ -39,6 +43,11 @@
     if (dot !== -1) s = s.slice(0, dot + 1) + s.slice(dot + 1).replace(/\./g, '');
     const v = parseFloat(s);
     return isNaN(v) ? null : v;
+  }
+  function decCount(v) {
+    if (v == null || isNaN(v)) return -1;
+    const s = String(v); const d = s.indexOf('.');
+    return d === -1 ? 0 : s.length - d - 1;
   }
 
   // 測点名: 土木測量用の語彙拡張
@@ -189,12 +198,12 @@
     return out;
   }
 
-  let rec = null, recBuf = '', tgt = null;
+  let rec = null, recBuf = '', tgt = null, recBestNum = null;
   function setupRec() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return null;
     const r = new SR();
-    r.lang = 'ja-JP'; r.interimResults = true; r.continuous = false; r.maxAlternatives = 3;
+    r.lang = 'ja-JP'; r.interimResults = true; r.continuous = false; r.maxAlternatives = 5;
     r.onresult = (ev) => {
       let txt = '';
       for (let i = ev.resultIndex; i < ev.results.length; i++) txt += ev.results[i][0].transcript;
@@ -202,12 +211,28 @@
       let disp = txt || '―';
       if (tgt && tgt.mode === 'note') disp = parseNote(txt) || txt || '―';
       else if (tgt && tgt.mode === 'text') disp = parseName(txt) || txt || '―';
-      else { const v = parseNum(txt); disp = v != null ? fmt(v) : (txt || '―'); }
+      else {
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const res = ev.results[i];
+          for (let j = 0; j < res.length; j++) {
+            const raw = res[j].transcript || '';
+            const v = parseNum(raw);
+            if (v == null) continue;
+            const d = decCount(v);
+            if (!recBestNum || d > recBestNum.dec ||
+                (d === recBestNum.dec && raw.length > recBestNum.raw.length)) {
+              recBestNum = { val: v, dec: d, raw };
+            }
+          }
+        }
+        const useVal = recBestNum ? recBestNum.val : parseNum(txt);
+        disp = useVal != null ? fmt(useVal) : (txt || '―');
+      }
       $('#voiceResult').textContent = disp;
       const last = ev.results[ev.results.length - 1];
       if (last && last.isFinal) {
         clearTimeout(window._voiceAutoT);
-        window._voiceAutoT = setTimeout(() => closeVoice(true), 250);
+        window._voiceAutoT = setTimeout(() => closeVoice(true), 700);
       }
     };
     r.onend = () => $('#voiceMicBtn').classList.remove('recording');
@@ -226,7 +251,7 @@
     if (mode === 'text') hint = '例:「No.295+20」「KP100+50」「STA200」「始点」「中間点」「終点」「BM」「TP」「もりかえ」';
     else if (mode === 'note') hint = '例:「もりかえ点」「視通良好」「立会」「検測」「出来形」「路床」「盛土」「法面」「鉄筋」など';
     $('#voiceHint').textContent = hint;
-    recBuf = '';
+    recBuf = ''; recBestNum = null;
     $('#voiceModal').classList.add('show');
     if (!rec) rec = setupRec();
     if (!rec) { $('#voiceResult').textContent = '※ 非対応'; toast('Safari (iOS 14.5+)で利用可'); return; }
@@ -240,7 +265,12 @@
       let v = null;
       if (tgt.mode === 'note') v = parseNote(recBuf);
       else if (tgt.mode === 'text') v = parseName(recBuf);
-      else { const n = parseNum(recBuf); v = n != null ? String(n) : null; }
+      else {
+        const fallback = parseNum(recBuf);
+        const best = recBestNum && (fallback == null || recBestNum.dec >= decCount(fallback))
+                     ? recBestNum.val : fallback;
+        v = best != null ? String(best) : null;
+      }
       if (v) {
         tgt.row[tgt.field] = v;
         mark(); render();
@@ -250,7 +280,7 @@
       }
     }
     $('#voiceModal').classList.remove('show');
-    tgt = null; recBuf = '';
+    tgt = null; recBuf = ''; recBestNum = null;
   }
   function mark() { const p = ap(); if (p) p.updatedAt = nowIso(); save(); }
 
